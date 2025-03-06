@@ -1,59 +1,59 @@
-# Node.js GPX Application
+# Aplicación Node.js GPX
 
-This project is a simple Node.js application that allows users to upload GPX files, add legends for the number of plants, and visualize the data on a map.
+Este proyecto es una aplicación simple de Node.js que permite a los usuarios subir archivos GPX, agregar leyendas para el número de plantas y visualizar los datos en un mapa.
 
-## Features
+## Características
 
-- Upload GPX files
-- Add legends for the number of plants and planted areas
-- Display the GPX data on an interactive map
+- Subir archivos GPX
+- Agregar leyendas para el número de plantas y áreas plantadas
+- Mostrar los datos GPX en un mapa interactivo
 
-## Project Structure
+## Estructura del Proyecto
 
 ```
 nodejs-gpx-app
 ├── src
-│   ├── index.js               # Entry point of the application
+│   ├── index.js               # Punto de entrada de la aplicación
 │   ├── controllers
-│   │   └── gpxController.js   # Handles GPX file operations
+│   │   └── gpxController.js   # Maneja las operaciones de archivos GPX
 │   ├── routes
-│   │   └── gpxRoutes.js       # Defines application routes
+│   │   └── gpxRoutes.js       # Define las rutas de la aplicación
 │   ├── services
-│   │   └── gpxService.js      # Processes GPX files and manages legends
+│   │   └── gpxService.js      # Procesa archivos GPX y gestiona las leyendas
 │   └── views
-│       └── mapView.js         # Renders the map with GPX data
-├── package.json                # NPM configuration file
-├── .gitignore                  # Specifies files to ignore in Git
-└── README.md                   # Project documentation
+│       └── mapView.js         # Renderiza el mapa con los datos GPX
+├── package.json                # Archivo de configuración de NPM
+├── .gitignore                  # Especifica los archivos a ignorar en Git
+└── README.md                   # Documentación del proyecto
 ```
 
-## Installation
+## Instalación
 
-1. Clone the repository:
+1. Clona el repositorio:
    ```
-   git clone https://github.com/yourusername/nodejs-gpx-app.git
+   git clone https://github.com/tuusuario/nodejs-gpx-app.git
    ```
-2. Navigate to the project directory:
+2. Navega al directorio del proyecto:
    ```
    cd nodejs-gpx-app
    ```
-3. Install the dependencies:
+3. Instala las dependencias:
    ```
    npm install
    ```
 
-## Usage
+## Uso
 
-1. Start the application:
+1. Inicia la aplicación:
    ```
    npm start
    ```
-2. Open your browser and go to `http://localhost:3000` to access the application.
+2. Abre tu navegador y ve a `http://localhost:3000` para acceder a la aplicación.
 
-## Contributing
+## Contribuir
 
-Feel free to submit issues or pull requests if you have suggestions or improvements for the project.
+No dudes en enviar problemas o solicitudes de extracción si tienes sugerencias o mejoras para el proyecto.
 
-## License
+## Licencia
 
-This project is licensed under the MIT License.
+Este proyecto está licenciado bajo la Licencia MIT.
