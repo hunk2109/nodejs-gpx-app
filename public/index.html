@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor GPX</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 800px; margin: 50px auto; padding: 20px; background: #fff; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; }
+        form { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+        input[type="file"], input[type="text"], input[type="number"], input[type="date"] { margin-right: 10px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background-color: #007bff; color: #fff; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #map { height: 600px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Visor GPX</h1>
+        <form id="formularioSubida" enctype="multipart/form-data">
+            <input type="file" id="gpxfile" name="gpxfile" accept=".gpx" required />
+            <input type="number" id="numeroDePlantas" name="numeroDePlantas" placeholder="Número de Plantas" required />
+            <input type="text" id="tipoDePlanta" name="tipoDePlanta" placeholder="Tipo de Planta" required />
+            <input type="date" id="fechaDePlantacion" name="fechaDePlantacion" placeholder="Fecha de Plantación" required />
+            <input type="text" id="tipoDeSuelo" name="tipoDeSuelo" placeholder="Tipo de Suelo" required />
+            <input type="text" id="nombreDelAgricultor" name="nombreDelAgricultor" placeholder="Nombre del Agricultor" required />
+            <button type="submit">Subir GPX</button>
+        </form>
+        <div id="map"></div>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/togeojson"></script>
+    <script>
+        const mapa = L.map('map').setView([18.7357, -70.1627], 8); // República Dominicana
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(mapa);
+
+        // Obtener y mostrar los polígonos guardados
+        fetch('/api/gpx/poligonos')
+            .then(response => response.json())
+            .then(poligonos => {
+                poligonos.forEach(poligono => {
+                    const capa = L.geoJSON(poligono.geoJson, {
+                        style: {
+                            color: 'blue',
+                            fillColor: 'blue',
+                            fillOpacity: 0.2
+                        },
+                        pointToLayer: function (feature, latlng) {
+                            return L.circleMarker(latlng, {
+                                radius: 0, // Ocultar los puntos
+                                fillOpacity: 0
+                            });
+                        },
+                        onEachFeature: function (feature, layer) {
+                            if (feature.properties && feature.properties.name) {
+                                layer.bindPopup(feature.properties.name);
+                            }
+                            layer.on('mouseover', function () {
+                                const contenidoPopup = `
+                                    <b>Tipo de Planta:</b> ${poligono.tipoDePlanta}<br>
+                                    <b>Número de Plantas:</b> ${poligono.numeroDePlantas}<br>
+                                    <b>Fecha de Plantación:</b> ${poligono.fechaDePlantacion}<br>
+                                    <b>Tipo de Suelo:</b> ${poligono.tipoDeSuelo}<br>
+                                    <b>Nombre del Agricultor:</b> ${poligono.nombreDelAgricultor}
+                                `;
+                                layer.bindPopup(contenidoPopup).openPopup();
+                            });
+                            layer.on('mouseout', function () {
+                                layer.closePopup();
+                            });
+                        }
+                    }).addTo(mapa);
+                });
+            })
+            .catch(error => console.error('Error al obtener los polígonos:', error));
+
+        document.getElementById('formularioSubida').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append('gpxfile', document.getElementById('gpxfile').files[0]);
+            formData.append('numeroDePlantas', document.getElementById('numeroDePlantas').value);
+            formData.append('tipoDePlanta', document.getElementById('tipoDePlanta').value);
+            formData.append('fechaDePlantacion', document.getElementById('fechaDePlantacion').value);
+            formData.append('tipoDeSuelo', document.getElementById('tipoDeSuelo').value);
+            formData.append('nombreDelAgricultor', document.getElementById('nombreDelAgricultor').value);
+
+            fetch('/api/gpx/subir', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Convertir datos GPX a GeoJSON y agregar al mapa
+                const gpx = new DOMParser().parseFromString(data, 'application/xml');
+                const datosGeoJson = toGeoJSON.gpx(gpx);
+                const capa = L.geoJSON(datosGeoJson, {
+                    style: {
+                        color: 'blue',
+                        fillColor: 'blue',
+                        fillOpacity: 0.2
+                    },
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 0, // Ocultar los puntos
+                            fillOpacity: 0
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.name) {
+                            layer.bindPopup(feature.properties.name);
+                        }
+                        layer.on('mouseover', function () {
+                            const contenidoPopup = `
+                                <b>Tipo de Planta:</b> ${document.getElementById('tipoDePlanta').value}<br>
+                                <b>Número de Plantas:</b> ${document.getElementById('numeroDePlantas').value}<br>
+                                <b>Fecha de Plantación:</b> ${document.getElementById('fechaDePlantacion').value}<br>
+                                <b>Tipo de Suelo:</b> ${document.getElementById('tipoDeSuelo').value}<br>
+                                <b>Nombre del Agricultor:</b> ${document.getElementById('nombreDelAgricultor').value}
+                            `;
+                            layer.bindPopup(contenidoPopup).openPopup();
+                        });
+                        layer.on('mouseout', function () {
+                            layer.closePopup();
+                        });
+                    }
+                }).addTo(mapa);
+            })
+            .catch(error => console.error('Error al subir el archivo GPX:', error));
+        });
+    </script>
+</body>
+</html>
