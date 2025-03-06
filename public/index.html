@@ -4,32 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visor GPX</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-        .container { max-width: 800px; margin: 50px auto; padding: 20px; background: #fff; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        h1 { text-align: center; }
-        form { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
-        input[type="file"], input[type="text"], input[type="number"], input[type="date"] { margin-right: 10px; margin-bottom: 10px; }
-        button { padding: 10px 20px; background-color: #007bff; color: #fff; border: none; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
         #map { height: 600px; width: 100%; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Visor GPX</h1>
-        <form id="formularioSubida" enctype="multipart/form-data">
-            <input type="file" id="gpxfile" name="gpxfile" accept=".gpx" required />
-            <input type="number" id="numeroDePlantas" name="numeroDePlantas" placeholder="Número de Plantas" required />
-            <input type="text" id="tipoDePlanta" name="tipoDePlanta" placeholder="Tipo de Planta" required />
-            <input type="date" id="fechaDePlantacion" name="fechaDePlantacion" placeholder="Fecha de Plantación" required />
-            <input type="text" id="tipoDeSuelo" name="tipoDeSuelo" placeholder="Tipo de Suelo" required />
-            <input type="text" id="nombreDelAgricultor" name="nombreDelAgricultor" placeholder="Nombre del Agricultor" required />
-            <button type="submit">Subir GPX</button>
+    <div class="container mt-5">
+        <h1 class="text-center">Visor GPX</h1>
+        <form id="formularioSubida" enctype="multipart/form-data" class="mb-4">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="gpxfile">Archivo GPX</label>
+                    <input type="file" class="form-control" id="gpxfile" name="gpxfile" accept=".gpx" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="numeroDePlantas">Número de Plantas</label>
+                    <input type="number" class="form-control" id="numeroDePlantas" name="numeroDePlantas" placeholder="Número de Plantas" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="tipoDePlanta">Tipo de Planta</label>
+                    <input type="text" class="form-control" id="tipoDePlanta" name="tipoDePlanta" placeholder="Tipo de Planta" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="fechaDePlantacion">Fecha de Plantación</label>
+                    <input type="date" class="form-control" id="fechaDePlantacion" name="fechaDePlantacion" placeholder="Fecha de Plantación" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="tipoDeSuelo">Tipo de Suelo</label>
+                    <input type="text" class="form-control" id="tipoDeSuelo" name="tipoDeSuelo" placeholder="Tipo de Suelo" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="nombreDelAgricultor">Nombre del Agricultor</label>
+                    <input type="text" class="form-control" id="nombreDelAgricultor" name="nombreDelAgricultor" placeholder="Nombre del Agricultor" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Subir GPX</button>
         </form>
         <div id="map"></div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/togeojson"></script>
     <script>
@@ -38,42 +58,44 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(mapa);
 
+        // Función para agregar un polígono al mapa
+        function agregarPoligono(poligono) {
+            const capa = L.geoJSON(poligono.geoJson, {
+                style: {
+                    color: 'blue',
+                    fillColor: 'blue',
+                    fillOpacity: 0.2
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {
+                        radius: 0, // Ocultar los puntos
+                        fillOpacity: 0
+                    });
+                },
+                onEachFeature: function (feature, layer) {
+                    if (feature.properties && feature.properties.name) {
+                        layer.bindPopup(feature.properties.name);
+                    }
+                    const contenidoPopup = `
+                        <b>Tipo de Planta:</b> ${poligono.tipoDePlanta}<br>
+                        <b>Número de Plantas:</b> ${poligono.numeroDePlantas}<br>
+                        <b>Fecha de Plantación:</b> ${poligono.fechaDePlantacion}<br>
+                        <b>Tipo de Suelo:</b> ${poligono.tipoDeSuelo}<br>
+                        <b>Nombre del Agricultor:</b> ${poligono.nombreDelAgricultor}<br>
+                        <button class="btn btn-danger btn-sm mt-2" onclick="eliminarPoligono('${poligono._id}', this)">Eliminar</button>
+                        <button class="btn btn-warning btn-sm mt-2" onclick="editarPoligono('${poligono._id}')">Editar</button>
+                    `;
+                    layer.bindPopup(contenidoPopup);
+                }
+            }).addTo(mapa);
+        }
+
         // Obtener y mostrar los polígonos guardados
         fetch('/api/gpx/poligonos')
             .then(response => response.json())
             .then(poligonos => {
                 poligonos.forEach(poligono => {
-                    const capa = L.geoJSON(poligono.geoJson, {
-                        style: {
-                            color: 'blue',
-                            fillColor: 'blue',
-                            fillOpacity: 0.2
-                        },
-                        pointToLayer: function (feature, latlng) {
-                            return L.circleMarker(latlng, {
-                                radius: 0, // Ocultar los puntos
-                                fillOpacity: 0
-                            });
-                        },
-                        onEachFeature: function (feature, layer) {
-                            if (feature.properties && feature.properties.name) {
-                                layer.bindPopup(feature.properties.name);
-                            }
-                            layer.on('mouseover', function () {
-                                const contenidoPopup = `
-                                    <b>Tipo de Planta:</b> ${poligono.tipoDePlanta}<br>
-                                    <b>Número de Plantas:</b> ${poligono.numeroDePlantas}<br>
-                                    <b>Fecha de Plantación:</b> ${poligono.fechaDePlantacion}<br>
-                                    <b>Tipo de Suelo:</b> ${poligono.tipoDeSuelo}<br>
-                                    <b>Nombre del Agricultor:</b> ${poligono.nombreDelAgricultor}
-                                `;
-                                layer.bindPopup(contenidoPopup).openPopup();
-                            });
-                            layer.on('mouseout', function () {
-                                layer.closePopup();
-                            });
-                        }
-                    }).addTo(mapa);
+                    agregarPoligono(poligono);
                 });
             })
             .catch(error => console.error('Error al obtener los polígonos:', error));
@@ -92,45 +114,81 @@
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.text())
-            .then(data => {
-                // Convertir datos GPX a GeoJSON y agregar al mapa
-                const gpx = new DOMParser().parseFromString(data, 'application/xml');
-                const datosGeoJson = toGeoJSON.gpx(gpx);
-                const capa = L.geoJSON(datosGeoJson, {
-                    style: {
-                        color: 'blue',
-                        fillColor: 'blue',
-                        fillOpacity: 0.2
-                    },
-                    pointToLayer: function (feature, latlng) {
-                        return L.circleMarker(latlng, {
-                            radius: 0, // Ocultar los puntos
-                            fillOpacity: 0
-                        });
-                    },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-                        }
-                        layer.on('mouseover', function () {
-                            const contenidoPopup = `
-                                <b>Tipo de Planta:</b> ${document.getElementById('tipoDePlanta').value}<br>
-                                <b>Número de Plantas:</b> ${document.getElementById('numeroDePlantas').value}<br>
-                                <b>Fecha de Plantación:</b> ${document.getElementById('fechaDePlantacion').value}<br>
-                                <b>Tipo de Suelo:</b> ${document.getElementById('tipoDeSuelo').value}<br>
-                                <b>Nombre del Agricultor:</b> ${document.getElementById('nombreDelAgricultor').value}
-                            `;
-                            layer.bindPopup(contenidoPopup).openPopup();
-                        });
-                        layer.on('mouseout', function () {
-                            layer.closePopup();
-                        });
-                    }
-                }).addTo(mapa);
+            .then(response => response.json())
+            .then(poligono => {
+                agregarPoligono(poligono);
+
+                // Limpiar los campos del formulario
+                document.getElementById('formularioSubida').reset();
             })
             .catch(error => console.error('Error al subir el archivo GPX:', error));
         });
+
+        function eliminarPoligono(id, button) {
+            fetch(`/api/gpx/poligonos/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                // Eliminar el polígono del mapa
+                mapa.eachLayer(layer => {
+                    if (layer.feature && layer.feature.properties && layer.feature.properties._id === id) {
+                        mapa.removeLayer(layer);
+                    }
+                });
+                // Eliminar el botón del DOM
+                button.closest('.leaflet-popup-content').innerHTML = 'Polígono eliminado';
+            })
+            .catch(error => console.error('Error al eliminar el polígono:', error));
+        }
+
+        function editarPoligono(id) {
+            const nuevoNombreDelAgricultor = prompt('Ingrese el nuevo nombre del agricultor:');
+            const nuevoTipoDePlanta = prompt('Ingrese el nuevo tipo de planta:');
+            const nuevoNumeroDePlantas = prompt('Ingrese el nuevo número de plantas:');
+            const nuevaFechaDePlantacion = prompt('Ingrese la nueva fecha de plantación:');
+            const nuevoTipoDeSuelo = prompt('Ingrese el nuevo tipo de suelo:');
+
+            fetch(`/api/gpx/poligonos/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nombreDelAgricultor: nuevoNombreDelAgricultor,
+                    tipoDePlanta: nuevoTipoDePlanta,
+                    numeroDePlantas: nuevoNumeroDePlantas,
+                    fechaDePlantacion: nuevaFechaDePlantacion,
+                    tipoDeSuelo: nuevoTipoDeSuelo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Actualizar el polígono en el mapa
+                mapa.eachLayer(layer => {
+                    if (layer.feature && layer.feature.properties && layer.feature.properties._id === id) {
+                        layer.feature.properties.nombreDelAgricultor = nuevoNombreDelAgricultor;
+                        layer.feature.properties.tipoDePlanta = nuevoTipoDePlanta;
+                        layer.feature.properties.numeroDePlantas = nuevoNumeroDePlantas;
+                        layer.feature.properties.fechaDePlantacion = nuevaFechaDePlantacion;
+                        layer.feature.properties.tipoDeSuelo = nuevoTipoDeSuelo;
+                        const contenidoPopup = `
+                            <b>Tipo de Planta:</b> ${nuevoTipoDePlanta}<br>
+                            <b>Número de Plantas:</b> ${nuevoNumeroDePlantas}<br>
+                            <b>Fecha de Plantación:</b> ${nuevaFechaDePlantacion}<br>
+                            <b>Tipo de Suelo:</b> ${nuevoTipoDeSuelo}<br>
+                            <b>Nombre del Agricultor:</b> ${nuevoNombreDelAgricultor}<br>
+                            <button class="btn btn-danger btn-sm mt-2" onclick="eliminarPoligono('${id}', this)">Eliminar</button>
+                            <button class="btn btn-warning btn-sm mt-2" onclick="editarPoligono('${id}')">Editar</button>
+                        `;
+                        layer.bindPopup(contenidoPopup).openPopup();
+                    }
+                });
+            })
+            .catch(error => console.error('Error al actualizar el polígono:', error));
+        }
     </script>
 </body>
 </html>

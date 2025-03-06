@@ -49,11 +49,9 @@ const subirArchivoGpx = (req, res) => {
     });
 
     nuevoPoligono.save()
-      .then(() => {
+      .then(poligonoGuardado => {
         console.log('Polígono guardado en MongoDB');
-        const constructor = new xml2js.Builder();
-        const xmlActualizado = constructor.buildObject(resultado);
-        res.send(xmlActualizado);
+        res.json(poligonoGuardado);
       })
       .catch(err => {
         console.error('Error al guardar en MongoDB:', err);
@@ -68,8 +66,31 @@ const obtenerPoligonos = (req, res) => {
     .catch(err => res.status(500).send('Error al obtener los polígonos'));
 };
 
+const eliminarPoligono = (req, res) => {
+  const { id } = req.params;
+  Polygon.findByIdAndDelete(id)
+    .then(() => res.send('Polígono eliminado'))
+    .catch(err => res.status(500).send('Error al eliminar el polígono'));
+};
+
+const actualizarPoligono = (req, res) => {
+  const { id } = req.params;
+  const { nombreDelAgricultor, tipoDePlanta, numeroDePlantas, fechaDePlantacion, tipoDeSuelo } = req.body;
+  Polygon.findByIdAndUpdate(id, {
+    nombreDelAgricultor,
+    tipoDePlanta,
+    numeroDePlantas,
+    fechaDePlantacion,
+    tipoDeSuelo
+  }, { new: true })
+    .then(poligono => res.json(poligono))
+    .catch(err => res.status(500).send('Error al actualizar el polígono'));
+};
+
 module.exports = {
   upload,
   subirArchivoGpx,
-  obtenerPoligonos
+  obtenerPoligonos,
+  eliminarPoligono,
+  actualizarPoligono
 };
