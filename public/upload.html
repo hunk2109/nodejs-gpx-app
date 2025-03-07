@@ -32,6 +32,7 @@
     <!-- Drawer -->
     <div id="drawer" class="drawer">
         <a href="javascript:void(0)" class="close-btn" onclick="closeDrawer()">&times;</a>
+        <a href="/"><i class="fas fa-home"></i> Inicio</a>
         <a href="/upload"><i class="fas fa-upload"></i> Cargar GPX</a>
         <a href="/map"><i class="fas fa-map"></i> Visor de Mapa</a>
         <a href="#"><i class="fas fa-cogs"></i> Funcionalidad Futuro 1</a>
@@ -40,34 +41,35 @@
 
     <div class="container">
         <h1 class="text-center">Cargar GPX</h1>
-        <form id="formularioSubida" enctype="multipart/form-data" class="mb-4">
+        <form action="/api/gpx/upload" method="post" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="gpxfile">Archivo GPX</label>
-                <input type="file" class="form-control" id="gpxfile" name="gpxfile" accept=".gpx" required>
-            </div>
-            <div class="form-group">
-                <label for="numeroDePlantas">Número de Plantas</label>
-                <input type="number" class="form-control" id="numeroDePlantas" name="numeroDePlantas" placeholder="Número de Plantas" required>
+                <label for="gpxFile">Archivo GPX</label>
+                <input type="file" id="gpxFile" name="gpxFile" required>
             </div>
             <div class="form-group">
                 <label for="tipoDePlanta">Tipo de Planta</label>
-                <input type="text" class="form-control" id="tipoDePlanta" name="tipoDePlanta" placeholder="Tipo de Planta" required>
+                <input type="text" id="tipoDePlanta" name="tipoDePlanta" required>
+            </div>
+            <div class="form-group">
+                <label for="numeroDePlantas">Número de Plantas</label>
+                <input type="number" id="numeroDePlantas" name="numeroDePlantas" required>
             </div>
             <div class="form-group">
                 <label for="fechaDePlantacion">Fecha de Plantación</label>
-                <input type="date" class="form-control" id="fechaDePlantacion" name="fechaDePlantacion" placeholder="Fecha de Plantación" required>
+                <input type="date" id="fechaDePlantacion" name="fechaDePlantacion" required>
             </div>
             <div class="form-group">
                 <label for="tipoDeSuelo">Tipo de Suelo</label>
-                <input type="text" class="form-control" id="tipoDeSuelo" name="tipoDeSuelo" placeholder="Tipo de Suelo" required>
+                <input type="text" id="tipoDeSuelo" name="tipoDeSuelo" required>
             </div>
             <div class="form-group">
                 <label for="nombreDelAgricultor">Nombre del Agricultor</label>
-                <input type="text" class="form-control" id="nombreDelAgricultor" name="nombreDelAgricultor" placeholder="Nombre del Agricultor" required>
+                <input type="text" id="nombreDelAgricultor" name="nombreDelAgricultor" required>
             </div>
-            <button type="submit" class="btn btn-primary">Subir GPX</button>
+            <button type="submit" class="btn btn-primary">Cargar</button>
         </form>
     </div>
+
     <script>
         function openDrawer() {
             document.getElementById("drawer").style.width = "250px";
@@ -76,28 +78,6 @@
         function closeDrawer() {
             document.getElementById("drawer").style.width = "0";
         }
-
-        document.getElementById('formularioSubida').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData();
-            formData.append('gpxfile', document.getElementById('gpxfile').files[0]);
-            formData.append('numeroDePlantas', document.getElementById('numeroDePlantas').value);
-            formData.append('tipoDePlanta', document.getElementById('tipoDePlanta').value);
-            formData.append('fechaDePlantacion', document.getElementById('fechaDePlantacion').value);
-            formData.append('tipoDeSuelo', document.getElementById('tipoDeSuelo').value);
-            formData.append('nombreDelAgricultor', document.getElementById('nombreDelAgricultor').value);
-
-            fetch('/api/gpx/subir', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert('Archivo GPX subido exitosamente');
-                document.getElementById('formularioSubida').reset();
-            })
-            .catch(error => console.error('Error al subir el archivo GPX:', error));
-        });
     </script>
 </body>
 </html>
