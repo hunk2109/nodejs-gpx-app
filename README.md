@@ -22,6 +22,10 @@ nodejs-gpx-app
 │   │   └── gpxService.js      # Procesa archivos GPX y gestiona las leyendas
 │   └── views
 │       └── mapView.js         # Renderiza el mapa con los datos GPX
+├── public
+│   ├── index.html             # Página de inicio
+│   ├── upload.html            # Página para cargar archivos GPX
+│   └── map.html               # Página para visualizar el mapa
 ├── package.json                # Archivo de configuración de NPM
 ├── .gitignore                  # Especifica los archivos a ignorar en Git
 └── README.md                   # Documentación del proyecto
@@ -48,7 +52,8 @@ nodejs-gpx-app
    ```
    npm start
    ```
-2. Abre tu navegador y ve a `http://localhost:3000` para acceder a la aplicación.
+2. Abre tu navegador y ve a `http://localhost:3000` para acceder a la página de inicio.
+3. Desde la página de inicio, puedes acceder al formulario de carga (`http://localhost:3000/upload`) y al visor del mapa (`http://localhost:3000/map`).
 
 ## Contribuir
 
