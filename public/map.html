@@ -87,15 +87,26 @@
             }).addTo(mapa);
         }
 
-        // Obtener y mostrar los polígonos guardados
-        fetch('/api/gpx/poligonos')
-            .then(response => response.json())
-            .then(poligonos => {
-                poligonos.forEach(poligono => {
-                    agregarPoligono(poligono);
-                });
-            })
-            .catch(error => console.error('Error al obtener los polígonos:', error));
+        // Función para cargar y mostrar los polígonos guardados
+        function cargarPoligonos() {
+            fetch('/api/gpx/poligonos')
+                .then(response => response.json())
+                .then(poligonos => {
+                    // Eliminar todas las capas existentes antes de agregar las nuevas
+                    mapa.eachLayer(layer => {
+                        if (layer instanceof L.GeoJSON) {
+                            mapa.removeLayer(layer);
+                        }
+                    });
+                    poligonos.forEach(poligono => {
+                        agregarPoligono(poligono);
+                    });
+                })
+                .catch(error => console.error('Error al obtener los polígonos:', error));
+        }
+
+        // Cargar los polígonos al cargar la página
+        cargarPoligonos();
 
         function eliminarPoligono(id, button) {
             fetch(`/api/gpx/poligonos/${id}`, {
@@ -104,14 +115,8 @@
             .then(response => response.text())
             .then(data => {
                 console.log(data);
-                // Eliminar el polígono del mapa
-                mapa.eachLayer(layer => {
-                    if (layer.feature && layer.feature.properties && layer.feature.properties._id === id) {
-                        mapa.removeLayer(layer);
-                    }
-                });
-                // Eliminar el botón del DOM
-                button.closest('.leaflet-popup-content').innerHTML = 'Polígono eliminado';
+                // Recargar los polígonos después de eliminar
+                cargarPoligonos();
             })
             .catch(error => console.error('Error al eliminar el polígono:', error));
         }
@@ -139,26 +144,8 @@
             .then(response => response.json())
             .then(data => {
                 console.log(data);
-                // Actualizar el polígono en el mapa
-                mapa.eachLayer(layer => {
-                    if (layer.feature && layer.feature.properties && layer.feature.properties._id === id) {
-                        layer.feature.properties.nombreDelAgricultor = nuevoNombreDelAgricultor;
-                        layer.feature.properties.tipoDePlanta = nuevoTipoDePlanta;
-                        layer.feature.properties.numeroDePlantas = nuevoNumeroDePlantas;
-                        layer.feature.properties.fechaDePlantacion = nuevaFechaDePlantacion;
-                        layer.feature.properties.tipoDeSuelo = nuevoTipoDeSuelo;
-                        const contenidoPopup = `
-                            <b>Tipo de Planta:</b> ${nuevoTipoDePlanta}<br>
-                            <b>Número de Plantas:</b> ${nuevoNumeroDePlantas}<br>
-                            <b>Fecha de Plantación:</b> ${nuevaFechaDePlantacion}<br>
-                            <b>Tipo de Suelo:</b> ${nuevoTipoDeSuelo}<br>
-                            <b>Nombre del Agricultor:</b> ${nuevoNombreDelAgricultor}<br>
-                            <button class="btn btn-danger btn-sm mt-2" onclick="eliminarPoligono('${id}', this)">Eliminar</button>
-                            <button class="btn btn-warning btn-sm mt-2" onclick="editarPoligono('${id}')">Editar</button>
-                        `;
-                        layer.bindPopup(contenidoPopup).openPopup();
-                    }
-                });
+                // Recargar los polígonos después de editar
+                cargarPoligonos();
             })
             .catch(error => console.error('Error al actualizar el polígono:', error));
         }

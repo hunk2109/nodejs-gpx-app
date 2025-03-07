@@ -1,39 +1,33 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const app = express();
 const path = require('path');
 const gpxRoutes = require('./routes/gpxRoutes');
-const connectDB = require('./db');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+// Middleware para manejar datos JSON y formularios
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Conectar a MongoDB
-connectDB();
+// Servir archivos estáticos
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../public')));
-
-// Rutas
+// Usar las rutas de GPX
 app.use('/api/gpx', gpxRoutes);
 
-// Ruta para el formulario de carga
-app.get('/upload', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/upload.html'));
-});
-
-// Ruta para el visor del mapa
-app.get('/map', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/map.html'));
-});
-
-// Ruta para la página de inicio
+// Rutas para servir las páginas HTML
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
+app.get('/upload', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'upload.html'));
+});
+
+app.get('/map', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'map.html'));
 });
 
 // Iniciar el servidor
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`El servidor está corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
