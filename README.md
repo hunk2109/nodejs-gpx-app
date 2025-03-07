@@ -31,7 +31,7 @@ nodejs-gpx-app
 
 1. Clona el repositorio:
    ```
-   git clone https://github.com/tuusuario/nodejs-gpx-app.git
+   git clone https://github.com/hunk2109/nodejs-gpx-app.git
    ```
 2. Navega al directorio del proyecto:
    ```
