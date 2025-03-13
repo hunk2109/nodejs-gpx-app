@@ -6,6 +6,7 @@
     <title>Visor GPX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.88/Build/Cesium/Widgets/widgets.css">
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
         .navbar { background-color: #28a745; color: white; padding: 10px; position: fixed; width: 100%; top: 0; z-index: 1000; }
@@ -14,7 +15,9 @@
         .drawer a { padding: 8px 8px 8px 32px; text-decoration: none; font-size: 25px; color: white; display: block; transition: 0.3s; }
         .drawer a:hover { background-color: #575757; }
         .drawer .close-btn { position: absolute; top: 0; right: 25px; font-size: 36px; margin-left: 50px; }
-        #map { height: 600px; width: 100%; margin-top: 80px; }
+        #map, #cesiumContainer { height: 600px; width: 100%; margin-top: 80px; display: none; }
+        #map.active, #cesiumContainer.active { display: block; }
+        .toggle-button { position: fixed; top: 10px; right: 10px; z-index: 1002; }
     </style>
 </head>
 <body>
@@ -36,12 +39,18 @@
 
     <div class="container mt-5">
         <h1 class="text-center">Visor GPX</h1>
-        <div id="map"></div>
+        <button class="toggle-button btn btn-primary" onclick="toggleView()">Cambiar a 3D</button>
+        <div id="map" class="active"></div>
+        <div id="cesiumContainer"></div>
     </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/togeojson"></script>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.88/Build/Cesium/Cesium.js"></script>
     <script>
+        // Reemplaza 'YOUR_CESIUM_ION_ACCESS_TOKEN' con tu token de acceso de Cesium ion
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4YWEyNjdkNy03NDk3LTRmOGItOTE3ZC0wMGY5NDE3ZWU5NjAiLCJpZCI6MjgyMjgyLCJpYXQiOjE3NDEzNzY3OTF9.lP5SoFz4GDQPP8OI03pOJib6waNeUQkqmqUroD4bFhk';
+
         function openDrawer() {
             document.getElementById("drawer").style.width = "250px";
         }
@@ -50,15 +59,21 @@
             document.getElementById("drawer").style.width = "0";
         }
 
+        let is3D = false; // Cambiar a 2D por defecto
         const mapContainer = document.getElementById('map');
+        const cesiumContainer = document.getElementById('cesiumContainer');
+        const toggleButton = document.querySelector('.toggle-button');
 
-        // Capas base
         const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         });
 
         const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles © Esri'
+        });
+
+        const realView = L.tileLayer('https://{s}.tile.thunderforest.com/atlas/{z}/{x}/{y}.png?apikey=YOUR_API_KEY', {
+            attribution: '© Thunderforest contributors'
         });
 
         const mapa = L.map('map', {
@@ -70,10 +85,32 @@
         // Control de capas
         const baseMaps = {
             "OpenStreetMap": osm,
-            "Satellite": satellite
+            "Satellite": satellite,
+            "Real View": realView
         };
 
         L.control.layers(baseMaps).addTo(mapa);
+
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: Cesium.createWorldTerrain()
+        });
+
+        function toggleView() {
+            is3D = !is3D;
+            console.log('Cambiando vista a', is3D ? '3D' : '2D');
+            if (is3D) {
+                mapContainer.classList.remove('active');
+                cesiumContainer.classList.add('active');
+                toggleButton.textContent = 'Cambiar a 2D';
+                console.log('Llamando a cargarPoligonos3D');
+                cargarPoligonos3D();
+            } else {
+                cesiumContainer.classList.remove('active');
+                mapContainer.classList.add('active');
+                toggleButton.textContent = 'Cambiar a 3D';
+                cargarPoligonos();
+            }
+        }
 
         // Función para agregar un polígono al mapa 2D
         function agregarPoligono(poligono) {
@@ -108,6 +145,23 @@
             }).addTo(mapa);
         }
 
+        // Función para agregar un polígono al mapa 3D
+        function agregarPoligono3D(poligono) {
+            console.log('Agregando polígono 3D:', poligono);
+            const coordinates = poligono.geoJson.features[0].geometry.coordinates[0].map(coord => [coord[1], coord[0]]).flat();
+            console.log('Coordenadas:', coordinates);
+            const hierarchy = Cesium.Cartesian3.fromDegreesArray(coordinates);
+            console.log('Jerarquía:', hierarchy);
+            viewer.entities.add({
+                polygon: {
+                    hierarchy: hierarchy,
+                    material: Cesium.Color.BLUE.withAlpha(0.5),
+                    extrudedHeight: 500
+                }
+            });
+            viewer.zoomTo(viewer.entities);
+        }
+
         // Función para cargar y mostrar los polígonos guardados en 2D
         function cargarPoligonos() {
             console.log('Cargando polígonos en 2D...');
@@ -131,6 +185,25 @@
                 .catch(error => console.error('Error al obtener los polígonos:', error));
         }
 
+        // Función para cargar y mostrar los polígonos guardados en 3D
+        function cargarPoligonos3D() {
+            console.log('Cargando polígonos en 3D...');
+            fetch('/api/gpx/poligonos')
+                .then(response => {
+                    console.log('Respuesta recibida:', response);
+                    return response.json();
+                })
+                .then(poligonos => {
+                    console.log('Polígonos cargados (3D):', poligonos);
+                    // Eliminar todas las entidades existentes antes de agregar las nuevas
+                    viewer.entities.removeAll();
+                    poligonos.forEach(poligono => {
+                        agregarPoligono3D(poligono);
+                    });
+                })
+                .catch(error => console.error('Error al obtener los polígonos:', error));
+        }
+
         // Cargar los polígonos en 2D al cargar la página
         cargarPoligonos();
 
@@ -142,7 +215,11 @@
             .then(data => {
                 console.log(data);
                 // Recargar los polígonos después de eliminar
-                cargarPoligonos();
+                if (is3D) {
+                    cargarPoligonos3D();
+                } else {
+                    cargarPoligonos();
+                }
             })
             .catch(error => console.error('Error al eliminar el polígono:', error));
         }
@@ -171,7 +248,11 @@
             .then(data => {
                 console.log(data);
                 // Recargar los polígonos después de editar
-                cargarPoligonos();
+                if (is3D) {
+                    cargarPoligonos3D();
+                } else {
+                    cargarPoligonos();
+                }
             })
             .catch(error => console.error('Error al actualizar el polígono:', error));
         }
