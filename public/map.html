@@ -148,17 +148,28 @@
         // Función para agregar un polígono al mapa 3D
         function agregarPoligono3D(poligono) {
             console.log('Agregando polígono 3D:', poligono);
-            const coordinates = poligono.geoJson.features[0].geometry.coordinates[0].map(coord => [coord[1], coord[0]]).flat();
+            const coordinates = poligono.geoJson.features[0].geometry.coordinates.flat();
             console.log('Coordenadas:', coordinates);
             const hierarchy = Cesium.Cartesian3.fromDegreesArray(coordinates);
             console.log('Jerarquía:', hierarchy);
-            viewer.entities.add({
+            const entity = viewer.entities.add({
                 polygon: {
                     hierarchy: hierarchy,
                     material: Cesium.Color.BLUE.withAlpha(0.5),
                     extrudedHeight: 500
                 }
             });
+
+            // Agregar propiedades al entity para edición y eliminación
+            entity.properties = new Cesium.PropertyBag({
+                id: poligono._id,
+                nombreDelAgricultor: poligono.nombreDelAgricultor,
+                tipoDePlanta: poligono.tipoDePlanta,
+                numeroDePlantas: poligono.numeroDePlantas,
+                fechaDePlantacion: poligono.fechaDePlantacion,
+                tipoDeSuelo: poligono.tipoDeSuelo
+            });
+
             viewer.zoomTo(viewer.entities);
         }
 
@@ -256,6 +267,81 @@
             })
             .catch(error => console.error('Error al actualizar el polígono:', error));
         }
+
+        // Función para eliminar un polígono en 3D
+        function eliminarPoligono3D(id) {
+            fetch(`/api/gpx/poligonos/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                // Recargar los polígonos después de eliminar
+                cargarPoligonos3D();
+            })
+            .catch(error => console.error('Error al eliminar el polígono:', error));
+        }
+
+        // Función para editar un polígono en 3D
+        function editarPoligono3D(id) {
+            const nuevoNombreDelAgricultor = prompt('Ingrese el nuevo nombre del agricultor:');
+            const nuevoTipoDePlanta = prompt('Ingrese el nuevo tipo de planta:');
+            const nuevoNumeroDePlantas = prompt('Ingrese el nuevo número de plantas:');
+            const nuevaFechaDePlantacion = prompt('Ingrese la nueva fecha de plantación:');
+            const nuevoTipoDeSuelo = prompt('Ingrese el nuevo tipo de suelo:');
+
+            fetch(`/api/gpx/poligonos/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nombreDelAgricultor: nuevoNombreDelAgricultor,
+                    tipoDePlanta: nuevoTipoDePlanta,
+                    numeroDePlantas: nuevoNumeroDePlantas,
+                    fechaDePlantacion: nuevaFechaDePlantacion,
+                    tipoDeSuelo: nuevoTipoDeSuelo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Recargar los polígonos después de editar
+                cargarPoligonos3D();
+            })
+            .catch(error => console.error('Error al actualizar el polígono:', error));
+        }
+
+        // Añadir eventos de clic a las entidades en Cesium
+        viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(movement) {
+            const pickedObject = viewer.scene.pick(movement.position);
+            if (Cesium.defined(pickedObject)) {
+                const entity = pickedObject.id;
+                if (entity.properties) {
+                    const id = entity.properties.id.getValue();
+                    const nombreDelAgricultor = entity.properties.nombreDelAgricultor.getValue();
+                    const tipoDePlanta = entity.properties.tipoDePlanta.getValue();
+                    const numeroDePlantas = entity.properties.numeroDePlantas.getValue();
+                    const fechaDePlantacion = entity.properties.fechaDePlantacion.getValue();
+                    const tipoDeSuelo = entity.properties.tipoDeSuelo.getValue();
+
+                    const contenidoPopup = `
+                        <b>Tipo de Planta:</b> ${tipoDePlanta}<br>
+                        <b>Número de Plantas:</b> ${numeroDePlantas}<br>
+                        <b>Fecha de Plantación:</b> ${fechaDePlantacion}<br>
+                        <b>Tipo de Suelo:</b> ${tipoDeSuelo}<br>
+                        <b>Nombre del Agricultor:</b> ${nombreDelAgricultor}<br>
+                        <button class="btn btn-danger btn-sm mt-2" onclick="eliminarPoligono3D('${id}')">Eliminar</button>
+                        <button class="btn btn-warning btn-sm mt-2" onclick="editarPoligono3D('${id}')">Editar</button>
+                    `;
+
+                    const infoBox = viewer.infoBox;
+                    infoBox.viewModel.showInfo = true;
+                    infoBox.viewModel.titleText = 'Información del Polígono';
+                    infoBox.viewModel.description = contenidoPopup;
+                }
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     </script>
 </body>
 </html>
