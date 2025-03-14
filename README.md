@@ -96,6 +96,19 @@ Cada polígono contiene información detallada como el tipo de planta, número d
 1. Haz clic en un polígono en el mapa.
 2. Revisa la información detallada en el popup.
 
+## Tecnologías Usadas
+
+- **Node.js**: Entorno de ejecución para JavaScript en el servidor.
+- **Express.js**: Framework web para Node.js.
+- **MongoDB**: Base de datos NoSQL para almacenar los datos de los polígonos.
+- **Mongoose**: ODM (Object Data Modeling) para MongoDB y Node.js.
+- **Leaflet**: Biblioteca de JavaScript para mapas interactivos en 2D.
+- **CesiumJS**: Biblioteca de JavaScript para mapas en 3D.
+- **Multer**: Middleware para manejar la carga de archivos en Node.js.
+- **toGeoJSON**: Biblioteca para convertir archivos GPX a GeoJSON.
+- **Bootstrap**: Framework CSS para diseño responsivo y componentes UI.
+- **Font Awesome**: Biblioteca de iconos vectoriales y logotipos.
+
 ## Contribuir
 
 No dudes en enviar problemas o solicitudes de extracción si tienes sugerencias o mejoras para el proyecto.
