@@ -7,6 +7,8 @@ Este proyecto es una aplicación simple de Node.js que permite a los usuarios su
 - Subir archivos GPX
 - Agregar leyendas para el número de plantas y áreas plantadas
 - Mostrar los datos GPX en un mapa interactivo
+- Alternar entre vistas 2D y 3D
+- Editar y eliminar polígonos en el mapa
 
 ## Estructura del Proyecto
 
@@ -54,6 +56,45 @@ nodejs-gpx-app
    ```
 2. Abre tu navegador y ve a `http://localhost:3000` para acceder a la página de inicio.
 3. Desde la página de inicio, puedes acceder al formulario de carga (`http://localhost:3000/upload`) y al visor del mapa (`http://localhost:3000/map`).
+
+## Funcionalidades
+
+### Subir Archivos GPX
+
+Los usuarios pueden subir archivos GPX a través de la página de carga. Los archivos se procesan y se almacenan en el servidor.
+
+1. Navega a la página de carga (`http://localhost:3000/upload`).
+2. Selecciona un archivo GPX desde tu computadora.
+3. Haz clic en el botón "Subir" para cargar el archivo.
+
+### Visualización de Mapas
+
+La aplicación permite visualizar los datos GPX en un mapa interactivo. Los usuarios pueden alternar entre vistas 2D y 3D utilizando el botón "Cambiar a 3D".
+
+1. Navega a la página del mapa (`http://localhost:3000/map`).
+2. Utiliza el botón "Cambiar a 3D" para alternar entre vistas 2D y 3D.
+
+### Edición y Eliminación de Polígonos
+
+Los polígonos en el mapa pueden ser editados o eliminados. Al hacer clic en un polígono, se muestra un popup con opciones para editar o eliminar el polígono.
+
+1. Haz clic en un polígono en el mapa.
+2. En el popup, haz clic en "Editar" para modificar los detalles del polígono.
+3. En el popup, haz clic en "Eliminar" para borrar el polígono del mapa.
+
+### Alternar entre Vistas 2D y 3D
+
+Los usuarios pueden alternar entre vistas 2D y 3D del mapa. En la vista 3D, los polígonos se muestran con una altura extruida para una mejor visualización.
+
+1. Haz clic en el botón "Cambiar a 3D" para cambiar a la vista 3D.
+2. Haz clic en el botón "Cambiar a 2D" para volver a la vista 2D.
+
+### Detalles de los Polígonos
+
+Cada polígono contiene información detallada como el tipo de planta, número de plantas, fecha de plantación, tipo de suelo y nombre del agricultor. Esta información se muestra en un popup al hacer clic en el polígono.
+
+1. Haz clic en un polígono en el mapa.
+2. Revisa la información detallada en el popup.
 
 ## Contribuir
 
